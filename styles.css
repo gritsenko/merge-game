@@ -1,0 +1,170 @@
+        :root {
+            --board-bg: #bbada0;
+            --cell-bg: #d7cec4;
+            --font-dark: #776e65;
+            --font-light: #f9f6f2;
+            --bg-color: #faf8ef;
+            --drop-target-bg: #e2d9cf;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            touch-action: none;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            text-align: center;
+            padding: 10px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 10vw, 3.5rem);
+            margin-bottom: 0.5rem;
+        }
+
+        #score-container {
+            font-size: clamp(1rem, 5vw, 1.5rem);
+            margin-bottom: 1rem; /* Увеличим отступ снизу */
+            height: 38px; /* Зарезервируем место, чтобы верстка не прыгала */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #score-container-left {
+            flex: 1;
+        }
+        
+        .sound-btn {
+            opacity: 0.6;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sound-btn img {
+            width: 32px;
+            height: 32px;
+            transition: opacity 0.2s;
+        }
+        
+        .sound-btn:hover {
+            background-color: var(--cell-bg);
+        }
+        
+        .sound-btn.muted {
+            opacity: 0.6;
+        }
+        
+        #score {
+            font-weight: bold;
+        }
+
+        canvas {
+            background-color: var(--board-bg);
+            border-radius: 16px;
+            display: block;
+            cursor: pointer;
+        }
+        
+        #game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(238, 228, 218, 0.73);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 6px;
+            animation: fade-in 0.5s;
+            text-align: center;
+        }
+        
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #game-over-overlay h2 {
+            font-size: 3rem;
+            margin: 0;
+        }
+        
+        #game-over-overlay p {
+            font-size: 1.5rem;
+        }
+
+        /* Field size modal - make it visually larger and more gamey */
+        .field-size-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgb(255, 255, 255);
+            padding: 36px; /* larger padding (roughly 2x) */
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+            min-width: 360px; /* wider modal */
+            z-index: 40;
+        }
+
+        .field-size-container h2 {
+            margin: 0 0 18px 0;
+            font-size: 1.6rem; /* larger title */
+            font-weight: bold;
+            color: #5e5e5e;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .size-btn {
+            margin: 12px;
+            padding: 14px 28px; /* bigger tappable area */
+            font-size: 2.15rem; /* bigger font */
+            border-radius: 12px;
+            color: #5e5e5e;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 0 rgba(93, 93, 93, 0.22);
+            font-weight: 800;
+        }
+
+        .size-btn:active { transform: translateY(3px); box-shadow: 0 6px 0 rgba(0,0,0,0.10); }
+
+        /* restart button uses a distinct accent and larger font */
+        #restart-btn {
+            padding: 14px 28px;
+            font-size: 1.15rem;
+            background: linear-gradient(180deg, #7ee8fa 0%, #4da7f5 100%);
+            color: #06304a;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.12);
+            font-weight: 800;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
