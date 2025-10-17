@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- TUTORIAL ---
   let isTutorial = false;
-  let tutorialFinger = { x: 0, y: 0, startTime: 0, duration: 3000, alpha: 1.0 };
+  let tutorialFinger = { x: 0, y: 0, startTime: 0, duration: 1000, alpha: 1.0 };
   const fingerImg = new Image();
   fingerImg.src = "hand-tool-1.svg";
 
@@ -142,6 +142,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const soundBtn = document.getElementById("sound-toggle");
     soundBtn.classList.toggle("muted", soundMuted);
+  }
+
+  function restartGame() {
+    init();
   }
 
   // --- CAMERA SHAKE ---
@@ -305,6 +309,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Sound toggle button
     const soundToggleBtn = document.getElementById("sound-toggle");
     soundToggleBtn.addEventListener("click", toggleSound);
+
+    // Restart button
+    const restartBtn = document.getElementById("restart-btn");
+    restartBtn.addEventListener("click", restartGame);
 
     window.addEventListener("resize", () => {
       resizeCanvas();
@@ -858,7 +866,7 @@ document.addEventListener("DOMContentLoaded", () => {
       overlay.innerHTML = `
                 <h2>Конец игры!</h2>
                 <p>Итоговый счет: <span id="final-score">0</span></p>
-                <button id="restart-btn">Играть снова</button>
+                <button id="restart-btn" class="endcard-button">Играть снова</button>
             `;
       gameContainer.appendChild(overlay);
       overlay.querySelector("#restart-btn").addEventListener("click", () => {

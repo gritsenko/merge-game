@@ -44,6 +44,7 @@
             flex: 1;
         }
         
+        button.restart-btn,
         .sound-btn {
             opacity: 0.6;
             background: none;
@@ -56,19 +57,33 @@
             align-items: center;
             justify-content: center;
         }
-        
+
+        button.restart-btn img,
         .sound-btn img {
             width: 32px;
             height: 32px;
             transition: opacity 0.2s;
         }
         
+        button.restart-btn:hover,
         .sound-btn:hover {
             background-color: var(--cell-bg);
         }
         
         .sound-btn.muted {
             opacity: 0.6;
+        }
+                
+        .endcard-button{
+            background-color: var(--bg-color);
+        }
+        /* keep icon size and light transition */
+        #restart-btn img,
+        .restart-btn img {
+            width: 32px;
+            height: 32px;
+            display: block;
+            transition: opacity 0.2s ease;
         }
         
         #score {
@@ -152,8 +167,8 @@
 
         .size-btn:active { transform: translateY(3px); box-shadow: 0 6px 0 rgba(0,0,0,0.10); }
 
-        /* restart button uses a distinct accent and larger font */
-        #restart-btn {
+        /* restart button style for end-card / overlay only */
+        #game-over-overlay #restart-btn {
             padding: 14px 28px;
             font-size: 1.15rem;
             background: linear-gradient(180deg, #7ee8fa 0%, #4da7f5 100%);
