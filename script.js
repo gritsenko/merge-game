@@ -54,6 +54,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let isDragging = false;
   let draggedCap = { value: null, index: -1, x: 0, y: 0, moveCost: 0 };
   let dropTarget = -1;
+  // Index of the cell where the user last placed/dropped a cap. Used to
+  // ensure chained merges collapse into the cell where the last tile
+  // appeared.
+  let lastUserDropIndex = -1;
 
   // --- CAMERA SHAKE ---
   let shakeIntensity = 0;
@@ -713,12 +717,17 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         grid[draggedCap.index] = null;
       }
+      // Remember where the user dropped the cap so merges will collapse
+      // into this cell even across chained recursive merge cycles.
+      lastUserDropIndex = finalDropTarget;
       isProcessing = true;
       setTimeout(() => processMergeCycle(finalDropTarget), 400);
     } else {
       // Play miss sound on wrong drop position
       playSound("miss");
       triggerShake();
+      // Clear lastUserDropIndex on miss so it doesn't affect later merges
+      lastUserDropIndex = -1;
     }
 
     isDragging = false;
@@ -728,7 +737,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- ИГРОВАЯ ЛОГИКА ---
+  // userActionIndex: index of the cell where the user last placed a cap.
+  // If provided (>=0), any merge group containing that index will collapse
+  // into that cell. For chained merges we preserve the original index so
+  // all cascaded merges collapse into the same user-drop cell.
   function processMergeCycle(userActionIndex = -1) {
+    // Prefer explicit parameter, otherwise fallback to lastUserDropIndex
+    const originalUserIndex = userActionIndex >= 0 ? userActionIndex : lastUserDropIndex;
     const merges = findAllMerges();
     if (merges.length > 0) {
       playSound("merge");
@@ -749,8 +764,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const newValue = commonValue + 1; // Возвращаем логику +1
 
         let collapseTargetIndex = group[0];
-        if (userActionIndex !== -1 && group.includes(userActionIndex)) {
-          collapseTargetIndex = userActionIndex;
+        // If the original user index is part of this group, make it the
+        // collapse target so merged pieces end up where the user dropped.
+        if (originalUserIndex !== -1 && group.includes(originalUserIndex)) {
+          collapseTargetIndex = originalUserIndex;
         }
 
         const targetCoords = getCellCoords(collapseTargetIndex);
@@ -775,7 +792,9 @@ document.addEventListener("DOMContentLoaded", () => {
         addAnimation("merge", collapseTargetIndex, 250);
       });
       updateScore();
-      setTimeout(() => processMergeCycle(-1), 300);
+      // Continue processing merges, preserving the original user index so
+      // cascades keep collapsing into the same place.
+      setTimeout(() => processMergeCycle(originalUserIndex), 300);
     } else {
       if (nextCapValue === null) {
         generateNextCap();
@@ -783,6 +802,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (checkGameOver()) {
         showGameOver();
       }
+      // Done processing merges — clear the remembered user drop index.
+      lastUserDropIndex = -1;
       isProcessing = false;
     }
   }
