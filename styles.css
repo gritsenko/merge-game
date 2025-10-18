@@ -13,11 +13,94 @@
             color: var(--font-dark);
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            align-items: center; /* центрируем по видимой области */
+            /* Use dynamic viewport height to account for mobile browser UI
+               --vh is set by JS to window.innerHeight * 0.01px */
+            height: calc(var(--vh, 1vh) * 100);
             margin: 0;
             touch-action: none;
             overflow: hidden;
+        }
+
+        .version-div{
+            /* default absolute positioning (fallback for older layout) */
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.9rem;
+            color: var(--font-dark);
+            opacity: 0.5;
+        }
+
+        /* Top-controls: split into left/center/right so controls can occupy corners and center */
+        .top-controls {
+            position: absolute;
+            top: 6px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none; /* allow inner buttons to control events */
+            z-index: 60;
+            padding: 6px 10px;
+        }
+
+        .top-controls > div {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .top-left {
+            justify-content: flex-start;
+            padding-left: 8px;
+        }
+
+        .top-right {
+            justify-content: flex-end;
+            padding-right: 8px;
+        }
+
+        .top-center {
+            justify-content: center;
+            flex: 1 1 auto;
+            pointer-events: none; /* non-interactive center text */
+        }
+
+        /* Centered version in top-center */
+        .top-center .version-div {
+            position: static;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            color: var(--font-dark);
+            opacity: 0.9;
+            padding: 2px 8px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        /* Keep buttons visually in corners with no extra background */
+        .top-left .restart-btn,
+        .top-right .sound-btn {
+            background: none;
+            border: none;
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        /* Responsive tweak: make icons slightly smaller on narrow screens */
+        @media (max-width: 420px) {
+            .top-left img,
+            .top-right img {
+                width: 24px;
+                height: 24px;
+            }
+            .top-center .version-div {
+                font-size: 0.85rem;
+                padding: 1px 6px;
+            }
         }
 
         #game-container {
@@ -43,6 +126,30 @@
         #score-container-left {
             flex: 1;
         }
+
+        /* Inline score and record row */
+        .score-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .score-label {
+            color: var(--font-dark);
+            opacity: 0.9;
+        }
+
+        .score-value {
+            font-weight: 800;
+            color: var(--font-dark);
+            margin-left: 4px;
+        }
+
+        .sep {
+            opacity: 0.35;
+            margin: 0 6px;
+        }
         
         button.restart-btn,
         .sound-btn {
@@ -60,6 +167,7 @@
 
         button.restart-btn img,
         .sound-btn img {
+            opacity: 0.7;
             width: 32px;
             height: 32px;
             transition: opacity 0.2s;
@@ -140,7 +248,7 @@
             padding: 36px; /* larger padding (roughly 2x) */
             border-radius: 16px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.18);
-            min-width: 360px; /* wider modal */
+            min-width: 260px; /* wider modal */
             z-index: 40;
         }
 

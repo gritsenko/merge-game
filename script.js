@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Set --vh CSS variable to fix mobile 100vh issues (tall device UI like iPhone)
+  function setVhVar() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+  setVhVar();
+  window.addEventListener('resize', setVhVar);
+  window.addEventListener('orientationchange', setVhVar);
+
   // --- КОНФИГУРАЦИЯ ---
   let GRID_SIZE = 4;
 
@@ -44,12 +53,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const ctx = canvas.getContext("2d");
   const g = Graphics.create(ctx);
   const scoreDisplay = document.getElementById("score");
+  const topScoreDisplay = document.getElementById("top-score");
+  const moveCostDisplay = document.getElementById("move-cost");
+  const RECORD_KEY = "merge-game-record";
   const gameContainer = document.getElementById("game-container");
 
   // --- СОСТОЯНИЕ ИГРЫ ---
   let grid = [];
   let score = 0;
+  let record = 0;
   let nextCapValue = null;
+  // Current cost to move an existing on-board cap. Starts at 1 and doubles
+  // after each paid move. Reset to 1 when a new game starts.
+  let currentMoveCost = 1;
   let isProcessing = false;
   let isDragging = false;
   let draggedCap = { value: null, index: -1, x: 0, y: 0, moveCost: 0 };
@@ -220,6 +236,10 @@ document.addEventListener("DOMContentLoaded", () => {
     resizeCanvas();
     grid = Array(GRID_SIZE * GRID_SIZE).fill(null);
     score = 0;
+  // reset move cost at the start of a new game
+  currentMoveCost = 1;
+    // load saved record from localStorage
+    loadRecord();
     nextCapValue = null;
     isProcessing = false;
     isDragging = false;
@@ -466,20 +486,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (draggedCap.moveCost > 0) {
         const text = `-${draggedCap.moveCost}`;
-        const textMetrics = g.measureText(text, {
-          font: `bold ${capSize * 0.3}px Arial`,
+        // Draw the penalty centered above the cap so it's less likely to be
+        // occluded by the player's finger on touch devices.
+        const fontSize = capSize * 0.28;
+        const textY = draggedCap.y - capSize / 2 - capSize * 0.12; // slightly above the cap
+        g.fillText(text, draggedCap.x, textY, {
+          font: `bold ${fontSize}px Arial`,
+          align: "center",
+          baseline: "bottom",
+          color: "#e11d48",
         });
-        g.fillText(
-          text,
-          draggedCap.x + capSize / 2 - textMetrics.width / 2,
-          draggedCap.y - capSize * 0.4,
-          {
-            font: `bold ${capSize * 0.3}px Arial`,
-            align: "left",
-            baseline: "bottom",
-            color: "#e11d48",
-          }
-        );
       }
     }
 
@@ -655,9 +671,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isProcessing) return;
     const cellIndex = getCellIndexFromPos(pos.x, pos.y);
     if (cellIndex !== -1 && grid[cellIndex] !== null) {
-      if (score >= MIN_SCORE_TO_MOVE) {
+      // Moving an on-board cap now costs `currentMoveCost` (starts at 1 and doubles
+      // after each paid move). Prevent dragging if player doesn't have enough score.
+      if (score >= currentMoveCost) {
         isDragging = true;
-        const currentMoveCost = Math.floor(score / 3);
         draggedCap = {
           value: grid[cellIndex],
           index: cellIndex,
@@ -667,7 +684,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         canvas.style.cursor = "grabbing";
       } else {
-        // Можно добавить анимацию "покачивания" или смены цвета, чтобы показать, что действие недоступно
+        // Could add a feedback animation here to show the action is locked.
       }
     }
   }
@@ -702,8 +719,13 @@ document.addEventListener("DOMContentLoaded", () => {
       playSound(randomPop);
 
       if (draggedCap.moveCost > 0) {
+        // Deduct cost and then double it for the next paid move
         score -= draggedCap.moveCost;
+        // Only double when a cost was paid (i.e., moving an on-board cap)
+        currentMoveCost = Math.max(1, draggedCap.moveCost * 2);
         updateScore();
+        // update move cost UI immediately
+        if (moveCostDisplay) moveCostDisplay.textContent = currentMoveCost;
       }
       grid[finalDropTarget] = draggedCap.value;
       
@@ -865,6 +887,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateScore() {
     scoreDisplay.textContent = score;
+    // If we beat the record, update and persist it
+    if (typeof record !== "number") record = 0;
+    if (score > record) {
+      record = score;
+      try {
+        localStorage.setItem(RECORD_KEY, String(record));
+      } catch (err) {
+        // ignore storage errors (e.g., storage disabled)
+      }
+      if (topScoreDisplay) topScoreDisplay.textContent = record;
+    }
+    // Always update move cost display
+    if (moveCostDisplay) moveCostDisplay.textContent = currentMoveCost;
+  }
+
+  function loadRecord() {
+    try {
+      const raw = localStorage.getItem(RECORD_KEY);
+      const parsed = parseInt(raw, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        record = parsed;
+      } else {
+        record = 0;
+      }
+    } catch (err) {
+      record = 0;
+    }
+    if (topScoreDisplay) topScoreDisplay.textContent = record;
+    if (moveCostDisplay) moveCostDisplay.textContent = currentMoveCost;
   }
 
   function generateNextCap() {
@@ -946,7 +997,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fieldSizeContainer.className = "field-size-container";
 
   const title = document.createElement("h2");
-  title.innerText = "Выберите размер поля";
+  title.innerText = "Размер поля";
   fieldSizeContainer.appendChild(title);
 
   [3, 4, 5].forEach((size) => {
@@ -960,14 +1011,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 2000);
 
       GRID_SIZE = size;
-      document.body.removeChild(fieldSizeContainer);
+  (gameContainer || document.body).removeChild(fieldSizeContainer);
       init();
       playSound("start");
     });
     fieldSizeContainer.appendChild(button);
   });
 
-  document.body.appendChild(fieldSizeContainer);
+  (gameContainer || document.body).appendChild(fieldSizeContainer);
 
   // --- ЗАПУСК ИГРЫ ---
   init();
