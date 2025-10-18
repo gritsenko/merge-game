@@ -75,16 +75,10 @@ document.addEventListener("DOMContentLoaded", () => {
   fingerImg.src = "hand-tool-1.svg";
 
   // --- SOUNDS ---
+  // --- SOUNDS ---
+  // Delegate all audio handling to the SoundManager defined in sounds.js.
+  // expose a local alias for convenience
   let soundMuted = false;
-  const sounds = {
-    pop1: new Audio("sounds/pop1.mp3"),
-    pop2: new Audio("sounds/pop2.mp3"),
-    pop3: new Audio("sounds/pop3.mp3"),
-    miss: new Audio("sounds/miss.mp3"),
-    merge: new Audio("sounds/merge.mp3"),
-    end: new Audio("sounds/end.mp3"),
-    start: new Audio("sounds/start.mp3"),
-  };
 
   // --- ДИНАМИЧЕСКИЙ РАЗМЕР ---
   let boardSize, cellSize, padding, capSize, gap, slotHeight;
@@ -117,40 +111,40 @@ document.addEventListener("DOMContentLoaded", () => {
   let animations = [];
 
   // --- SOUNDS ---
+  // Delegate wrappers that call into the SoundManager provided by
+  // `sounds.js`. This keeps the rest of the game untouched while moving
+  // audio-specific code into a separate file.
   function preloadSounds() {
-    Object.values(sounds).forEach((sound) => {
-      sound.load();
-    });
+    if (window.SoundManager && window.SoundManager.preloadSounds) {
+      return window.SoundManager.preloadSounds();
+    }
+    return Promise.resolve();
   }
 
-  function playSound(soundName) {
-    if (soundMuted) return;
-    if (sounds[soundName]) {
-      sounds[soundName].currentTime = 0;
-      sounds[soundName]
-        .play()
-        .catch((e) => console.log("Sound play failed:", e));
+  function playSound(name) {
+    if (window.SoundManager && window.SoundManager.playSound) {
+      window.SoundManager.playSound(name);
     }
   }
 
   function toggleSound() {
-    soundMuted = !soundMuted;
-    const soundIcon = document.getElementById("sound-icon");
-    if (soundMuted) {
-      soundIcon.src = "mute.svg";
-      soundIcon.alt = "Sound Muted";
-    } else {
-      // For unmuted state, use a simple speaker emoji as image
-      soundIcon.src = "data:image/svg+xml;base64," + btoa('<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/></svg>');
-      soundIcon.alt = "Sound On";
+    if (window.SoundManager && window.SoundManager.toggleSound) {
+      window.SoundManager.toggleSound();
+      soundMuted = window.SoundManager.soundMuted;
     }
-    const soundBtn = document.getElementById("sound-toggle");
-    soundBtn.classList.toggle("muted", soundMuted);
+  }
+
+  function unlockAudioIfNeeded() {
+    if (window.SoundManager && window.SoundManager.unlockAudioIfNeeded) {
+      window.SoundManager.unlockAudioIfNeeded();
+    }
   }
 
   function restartGame() {
     init();
   }
+
+  
 
   // --- CAMERA SHAKE ---
   function triggerShake(intensity = 10, duration = 300) {
@@ -629,6 +623,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isDragging) return;
     if (isTutorial) isTutorial = false;
     e.preventDefault();
+    // Any user gesture should unlock/resume the AudioContext so WebAudio
+    // can play without being blocked and to start the silent keep-alive.
+    try {
+      unlockAudioIfNeeded();
+    } catch (err) {
+      // ignore
+    }
     const pos = getInteractionPos(e);
 
     const nextCapCoords = getNextCapCoords();
