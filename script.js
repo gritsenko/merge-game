@@ -1035,4 +1035,43 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const soundBtn = document.getElementById("sound-toggle");
   soundBtn.classList.toggle("muted", soundMuted);
+  // Make version element clickable to force a hard reload (cache-busting)
+  try {
+    const versionEl = document.querySelector('.version-div');
+    if (versionEl) {
+      // Make it keyboard-focusable and announceable for screen readers
+      versionEl.setAttribute('tabindex', '0');
+      versionEl.setAttribute('role', 'button');
+      versionEl.setAttribute('aria-label', 'Перезагрузить страницу и очистить кэш');
+
+      function reloadBypassCache() {
+        // Append or replace a cache-busting query parameter.
+        // We preserve existing query params except replace any existing 'cb'.
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set('cb', Date.now().toString());
+          // Use location.replace so history isn't polluted with many cb entries
+          window.location.replace(url.toString());
+        } catch (err) {
+          // Fallback: use location.reload with cache bypass where supported
+          try { window.location.reload(true); } catch (e) { window.location.reload(); }
+        }
+      }
+
+      versionEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        reloadBypassCache();
+      });
+
+      versionEl.addEventListener('keydown', (e) => {
+        // Activate on Enter or Space
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          reloadBypassCache();
+        }
+      });
+    }
+  } catch (err) {
+    // ignore any errors attaching the handler
+  }
 });

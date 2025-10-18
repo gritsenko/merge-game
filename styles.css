@@ -78,7 +78,20 @@
             padding: 2px 8px;
             background: rgba(255,255,255,0.02);
             border-radius: 6px;
-            pointer-events: none;
+            /* Make version interactive so users can click to refresh with cache-bust */
+            pointer-events: auto;
+            cursor: pointer;
+            transition: opacity 0.15s, background-color 0.15s;
+            width: 32px;
+            height: 32px;
+            text-align: center;
+            padding-top: 14px;
+        }
+
+        /* Subtle hover state to indicate clickability */
+        .top-center .version-div:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.03);
         }
 
         /* Keep buttons visually in corners with no extra background */
