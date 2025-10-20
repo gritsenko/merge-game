@@ -1,13 +1,13 @@
 // Simple SoundManager to centralize audio logic and avoid iOS first-play jank.
 (function () {
   const soundFiles = {
-    pop1: "../sounds/pop1.mp3",
-    pop2: "../sounds/pop2.mp3",
-    pop3: "../sounds/pop3.mp3",
-    miss: "../sounds/miss.mp3",
-    merge: "../sounds/merge.mp3",
-    end: "../sounds/end.mp3",
-    start: "../sounds/start.mp3",
+    pop1: "./sounds/pop1.mp3",
+    pop2: "./sounds/pop2.mp3",
+    pop3: "./sounds/pop3.mp3",
+    miss: "./sounds/miss.mp3",
+    merge: "./sounds/merge.mp3",
+    end: "./sounds/end.mp3",
+    start: "./sounds/start.mp3",
   };
 
   const legacyAudios = {};

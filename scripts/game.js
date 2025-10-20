@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isTutorial = false;
   let tutorialFinger = { x: 0, y: 0, startTime: 0, duration: 1000, alpha: 1.0 };
   const fingerImg = new Image();
-  fingerImg.src = "hand-tool-1.svg";
+  fingerImg.src = "./res/hand-tool-1.svg";
 
   // --- SOUNDS ---
   // --- SOUNDS ---
